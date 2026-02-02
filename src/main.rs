@@ -27,6 +27,9 @@ struct Cli {
 
     #[arg(long, short, default_value_t = 0)]
     skip: usize,
+
+    #[arg(long, short, default_value_t = 0)]
+    repeat: u16,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -37,6 +40,7 @@ fn main() -> anyhow::Result<()> {
     let speed = cli.speed;
     let min_delay = cli.min;
     let init_skip = cli.skip;
+    let repeat = cli.repeat;
 
     let file_out = match File::create_new(&output) {
         Ok(file) => file,
@@ -69,7 +73,11 @@ fn main() -> anyhow::Result<()> {
     let mut encoder = GifEncoder::new(file_out);
 
     encoder
-        .set_repeat(Repeat::Infinite)
+        .set_repeat(if repeat == 0 {
+            Repeat::Infinite
+        } else {
+            Repeat::Finite(repeat)
+        })
         .context("set animation repeat")?;
 
     let mut skip = init_skip;
