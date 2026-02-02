@@ -21,6 +21,12 @@ struct Cli {
     output: PathBuf,
 
     speed: f64,
+
+    #[arg(long, short, default_value_t = 10)]
+    min: u32,
+
+    #[arg(long, short, default_value_t = 0)]
+    skip: usize,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -29,11 +35,13 @@ fn main() -> anyhow::Result<()> {
     let input = cli.input;
     let output = cli.output;
     let speed = cli.speed;
+    let min_delay = cli.min;
+    let init_skip = cli.skip;
 
     let file_out = match File::create_new(&output) {
         Ok(file) => file,
         Err(e) if e.kind() == ErrorKind::AlreadyExists => {
-            print!("`{output:?}` already exists, do you want to overwrite it? [y/N]");
+            print!("{output:?} already exists, do you want to overwrite it? [y/N] ");
             std::io::stdout().flush().context("flush stdout")?;
 
             let mut input = String::new();
@@ -64,13 +72,21 @@ fn main() -> anyhow::Result<()> {
         .set_repeat(Repeat::Infinite)
         .context("set animation repeat")?;
 
+    let mut skip = init_skip;
     for (idx, frame) in frames.into_iter().enumerate() {
+        if skip > 0 {
+            skip -= 1;
+            continue;
+        } else {
+            skip = init_skip;
+        }
+
         let frame = frame.context("Cannot decode frame")?;
 
         let left = frame.left();
         let top = frame.top();
         let (num, denom) = frame.delay().numer_denom_ms();
-        let adjusted_num = ((num as f64) / speed).max(10.0) as u32;
+        let adjusted_num = ((num as f64 / speed) as u32).max(min_delay);
         println!("[Frame {idx}] delay: {num}/{denom} -> {adjusted_num}/{denom}");
 
         let new_frame = Frame::from_parts(
