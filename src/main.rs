@@ -64,7 +64,8 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    let file_in = BufReader::new(File::open(input).with_context(|| "Cannot find {input}")?);
+    let file_in =
+        BufReader::new(File::open(&input).with_context(|| format!("Cannot find {input:?}"))?);
     let decoder = GifDecoder::new(file_in).context("create gif decoder")?;
 
     let frames = decoder.into_frames();
@@ -80,7 +81,7 @@ fn main() -> anyhow::Result<()> {
         })
         .context("set animation repeat")?;
 
-    let mut skip = init_skip;
+    let mut skip = 0;
     for (idx, frame) in frames.into_iter().enumerate() {
         if skip > 0 {
             skip -= 1;
