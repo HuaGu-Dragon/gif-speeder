@@ -42,6 +42,9 @@ fn main() -> anyhow::Result<()> {
     let init_skip = cli.skip;
     let repeat = cli.repeat;
 
+    let file_in =
+        BufReader::new(File::open(&input).with_context(|| format!("Cannot find {input:?}"))?);
+
     let file_out = match File::create_new(&output) {
         Ok(file) => file,
         Err(e) if e.kind() == ErrorKind::AlreadyExists => {
@@ -64,8 +67,6 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    let file_in =
-        BufReader::new(File::open(&input).with_context(|| format!("Cannot find {input:?}"))?);
     let decoder = GifDecoder::new(file_in).context("create gif decoder")?;
 
     let frames = decoder.into_frames();
