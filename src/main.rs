@@ -14,20 +14,26 @@ use image::{
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
+    /// Input file path
     #[arg(short, long)]
     input: PathBuf,
 
+    /// Output file path
     #[arg(short, long)]
     output: PathBuf,
 
+    /// Speed factor
     speed: f64,
 
+    /// Minimum delay in milliseconds
     #[arg(long, short, default_value_t = 10)]
     min: u32,
 
+    /// Skip frames
     #[arg(long, short, default_value_t = 0)]
     skip: usize,
 
+    /// Repeat frames
     #[arg(long, short, default_value_t = 0)]
     repeat: u16,
 }
